@@ -1,0 +1,2 @@
+install_test_site: True
+install_prod_site: False

@@ -1,0 +1,12 @@
+- name: terharkit.nl deployed
+  block:
+  - set_fact:
+      wordpress_settings: "{{ wordpress_test_settings }}"
+  - import_tasks: enfore_wordpress.yml
+  when: install_test_site
+- name: btunix.com deployed
+  block:
+  - set_fact:
+      wordpress_settings: "{{ wordpress_prod_settings }}"
+  - import_tasks: enfore_wordpress.yml
+  when: install_prod_site
