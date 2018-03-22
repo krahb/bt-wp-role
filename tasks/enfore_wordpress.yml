@@ -1,3 +1,36 @@
-- name: debug
-  debug:
-    msg: "settings: {{ wordpress_settings }}"
+- name: variables set
+  set_fact:
+    wp_dir: "{{ wordpress_settings.directory }}"
+    wp_db: "{{ wordpress_settings.database }}"
+    wp_user: "{{ wordpress_settings.user }}"
+    wp_pwd: "{{ wordpress_settings.password }}"
+- name: wordpress target directory /var/www/{{ wp_dir }} available
+  file:
+    path: "/var/www/{{ wp_dir }}"
+    state: directory
+    mode: "u=rwx,g=rwx,o=rx"
+    owner: nginx
+    group: nginx
+- name: set selinux policies
+  sefcontext:
+    target: '/var/www/{{ wp_dir }}(/.*)?'
+    setype: httpd_sys_rw_content_t
+    state: present
+  notify: restorecon
+- name: latest wordpress version downloaded
+  get_url:
+    url: https://wordpress.org/latest.tar.gz
+    dest: "/tmp/{{ wp_dir }}-latest.tar.gz"
+    mode: 0644
+  check_mode: no
+  register: wordpress_download
+- name: unpack wordpress to /var/www/{{ wp1_dir }}
+  unarchive:
+    src: "/tmp/{{ wp_dir }}-latest.tar.gz"
+    dest: /var/www/{{ wp_dir }}/
+    owner: nginx
+    group: nginx
+    extra_opts: "--strip-components=1"
+    remote_src: yes
+  when: wordpress_download.changed
+
