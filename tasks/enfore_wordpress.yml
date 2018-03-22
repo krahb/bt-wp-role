@@ -24,7 +24,7 @@
     mode: 0644
   check_mode: no
   register: wordpress_download
-- name: unpack wordpress to /var/www/{{ wp1_dir }}
+- name: unpack wordpress to /var/www/{{ wp_dir }}
   unarchive:
     src: "/tmp/{{ wp_dir }}-latest.tar.gz"
     dest: /var/www/{{ wp_dir }}/
@@ -33,4 +33,21 @@
     extra_opts: "--strip-components=1"
     remote_src: yes
   when: wordpress_download.changed
-
+- name: get latest nikkon version
+  local_action: latest_nikkon_version
+  register: result_latest
+- name: set version variable
+  set_fact:
+    nikkon_version: "{{ result_latest.msg }}"
+- name: download latest nikkon theme
+  get_url:
+    url: "https://downloads.wordpress.org/theme/nikkon.{{ nikkon_version }}.zip"
+    dest: "/tmp/{{ wp_dir }}-nikkon.{{ nikkon_version }}.zip"
+    force: no
+  register: result_get
+- name: unpack themes
+  unarchive:
+    src: "/tmp/{{ wp_dir }}-nikkon.{{ nikkon_version }}.zip"
+    dest: "/var/www/{{ wp_dir }}/wp-content/themes"
+    remote_src: yes
+  when: result_get.changed
