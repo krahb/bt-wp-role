@@ -50,4 +50,4 @@
     src: "/tmp/{{ wp_dir }}-nikkon.{{ nikkon_version }}.zip"
     dest: "/var/www/{{ wp_dir }}/wp-content/themes"
     remote_src: yes
-  when: result_get.changed
+#  when: result_get.changed
