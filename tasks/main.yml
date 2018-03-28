@@ -2,11 +2,11 @@
   - name: test deployed
     set_fact:
       wordpress_settings: "{{ wordpress_test_settings }}"
-  - import_tasks: enfore_wordpress.yml
+  - import_tasks: enforce_wordpress.yml
   when: install_test_site
 - block:
   - name: prod deployed
     set_fact:
       wordpress_settings: "{{ wordpress_prod_settings }}"
-  - import_tasks: enfore_wordpress.yml
+  - import_tasks: enforce_wordpress.yml
   when: install_prod_site
