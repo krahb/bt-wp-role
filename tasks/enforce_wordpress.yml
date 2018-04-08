@@ -1,5 +1,6 @@
 - name: variables set
   set_fact:
+    wp_domain: "{{ wordpress_settings.domain }}"
     wp_dir: "{{ wordpress_settings.directory }}"
     wp_db_host: "{{ wordpress_settings.dbnode }}"
     wp_db_name: "{{ wordpress_settings.database }}"
@@ -53,7 +54,20 @@
     owner: nginx
     group: nginx
     remote_src: yes
-
-#    login_user: root
-#    login_password: "{{ mysql_root_password }}"
-
+- name: create db user
+  mysql_user:
+    name: "{{ wp_db_user }}"
+    password: "{{ wp_db_pwd }}"
+    state: present
+    host: "%"
+    priv: "{{ wp_db_name }}.*:ALL"
+    login_host: "{{ wp_db_host }}"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+- name: configured /var/www/{{ wp_dir }}/wp-config.php
+  template:
+    src: templates/wp-config.php.j2
+    dest: /var/www/{{ wp_dir }}/wp-config.php
+    owner: nginx
+    group: nginx
+    mode: 0640
