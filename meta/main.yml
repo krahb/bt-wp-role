@@ -9,4 +9,5 @@ galaxy_info:
 
   galaxy_tags: []
 
-dependencies: []
+dependencies:
+  - { role: sbaerlocher.wp-cli, wp_cli_bin_path: "{{ wp_cli_path }}" }
