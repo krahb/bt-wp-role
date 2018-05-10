@@ -3,4 +3,5 @@ install_prod_site: False
 wp_cli_url: https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 wp_cli_bin: wp-cli.phar
 wp_cli_exe: wp
-wp_cli_path: /usr/local/bin
+#wp_cli_path: /usr/local/bin
+wp_cli_path: /usr/bin
