@@ -6,6 +6,16 @@
     wp_db_name: "{{ wordpress_settings.database }}"
     wp_db_user: "{{ wordpress_settings.user }}"
     wp_db_pwd: "{{ wordpress_settings.password }}"
+- name: db user created
+  mysql_user:
+    name: "{{ wp_db_user }}"
+    password: "{{ wp_db_pwd }}"
+    state: present
+    host: "%"
+    priv: "{{ wp_db_name }}.*:ALL"
+    login_host: "{{ wp_db_host }}"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
 - name: wordpress target directory /var/www/{{ wp_dir }} available
   file:
     path: "/var/www/{{ wp_dir }}"

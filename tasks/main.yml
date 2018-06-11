@@ -3,6 +3,7 @@
     src: "{{ wp_cli_path }}/{{ wp_cli_bin }}"
     dest: "{{ wp_cli_path }}/{{ wp_cli_exe }}"
     state: link
+#- name: wp-cli updated
 - block:
   - name: test deployed
     set_fact:

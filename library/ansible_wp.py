@@ -121,10 +121,8 @@ def main():
             'plugins': {'required': False, 'type': 'list'},
             'themes': {'required': False, 'type': 'list'},
             'users': {'required': False, 'type': 'list'},
-            'cache': {
-                'required': False,
-                'type': 'str'
-            },
+            'cache': {'required': False, 'type': 'str' },
+            'core': {'required': False, 'type': 'str' },
         },
         mutually_exclusive = [
         ],
