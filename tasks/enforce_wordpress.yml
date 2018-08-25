@@ -2,7 +2,7 @@
   set_fact:
     wp_domain: "{{ wordpress_settings.domain }}"
     wp_dir: "{{ wordpress_settings.directory }}"
-    wp_db_host: "{{ wordpress_settings.dbnode[0] }}"
+    wp_db_host: "{{ wordpress_settings.dbnode }}"
     wp_db_name: "{{ wordpress_settings.database }}"
     wp_db_user: "{{ wordpress_settings.user }}"
     wp_db_pwd: "{{ wordpress_settings.password }}"
@@ -49,7 +49,8 @@
 - name: themes installed
   ansible_wp:
     path: "/var/www/{{ wp_dir }}"
-    themes: "{{ wordpress_settings.theme }}"
+    state: latest
+    theme: "{{ wordpress_settings.theme }}"
   tags: themes
 
 #- name: get latest nikkon version
