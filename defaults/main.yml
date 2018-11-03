@@ -5,3 +5,4 @@ wp_cli_bin: wp-cli.phar
 wp_cli_exe: wp
 #wp_cli_path: /usr/local/bin
 wp_cli_path: /usr/bin
+import_databases: no
