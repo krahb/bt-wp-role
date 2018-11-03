@@ -57,7 +57,7 @@ def core(path, wp, module):
         # wp --path=/var/www/thiwp/ theme is-installed <theme>
         theme_not_installed, wpout, wperr = module.run_command("{} --path={} theme is-installed {}".format(wp, path, theme))
         if wperr:
-            module.fail_json(msg=wperr, rc=rc)
+            module.fail_json(msg=wperr, rc=theme_not_installed)
         if theme_not_installed == 0:
             # theme is installed
             rc, wpout, wperr = module.run_command("{} --path={} theme get {} --format=json --fields=version".format(wp, path, theme))
