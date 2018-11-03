@@ -45,6 +45,13 @@
     group: nginx
     extra_opts: "--strip-components=1"
     remote_src: yes
+- name: configured /var/www/{{ wp_dir }}/wp-config.php
+ template:
+    src: templates/wp-config.php.j2
+    dest: /var/www/{{ wp_dir }}/wp-config.php
+    owner: nginx
+    group: nginx
+    mode: 0640
 - name: themes installed
   ansible_wp:
     path: "/var/www/{{ wp_dir }}"
@@ -90,10 +97,3 @@
 #    group: nginx
 #    remote_src: yes
  
-#- name: configured /var/www/{{ wp_dir }}/wp-config.php
-#  template:
-#    src: templates/wp-config.php.j2
-#    dest: /var/www/{{ wp_dir }}/wp-config.php
-#    owner: nginx
-#    group: nginx
-#    mode: 0640
