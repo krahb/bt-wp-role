@@ -23,9 +23,12 @@
       dest: /tmp
   - name: database restored
     mysql_db:
-      name: my_db
+      name: "{{ wp_db_name }}"
       state: import
       target: "/tmp/{{ dump_file }}"
+      login_host: "{{ wp_db_host }}"
+      login_user: root
+      login_password: "{{ mysql_root_password }}"
   when: import_databases
 - name: wordpress target directory /var/www/{{ wp_dir }} available
   file:
