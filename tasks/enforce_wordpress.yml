@@ -16,6 +16,17 @@
     login_host: "{{ wp_db_host }}"
     login_user: root
     login_password: "{{ mysql_root_password }}"
+- block:
+  - name: database dump file copied
+    copy:
+      src: "{{ dump_file }}"
+      dest: /tmp
+  - name: database restored
+    mysql_db:
+      name: my_db
+      state: import
+      target: "/tmp/{{ dump_file }}"
+  when: import_databases
 - name: wordpress target directory /var/www/{{ wp_dir }} available
   file:
     path: "/var/www/{{ wp_dir }}"
