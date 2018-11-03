@@ -45,33 +45,31 @@
     group: nginx
     extra_opts: "--strip-components=1"
     remote_src: yes
-#  when: wordpress_download.changed
 - name: themes installed
   ansible_wp:
     path: "/var/www/{{ wp_dir }}"
     state: latest
     theme: "{{ wordpress_settings.theme }}"
   tags: themes
+- name: proper permissions set on themes
+  file:
+    path: "/var/www/{{ wp_dir }}/wp-content/themes/{{ wordpress_settings.theme }}"
+    owner: nginx
+    group: nginx
+    recurse: yes
+  tags: themes
+- name: plugins installed
+  ansible_wp:
+    path: "/var/www/{{ wp_dir }}"
+    state: latest
+    plugin: "{{ wordpress_settings.plugin}}"
+- name: proper permissions set on plugins
+  file:
+    path: "/var/www/{{ wp_dir }}/wp-content/plugins/{{ wordpress_settings.plugin }}"
+    owner: nginx
+    group: nginx
+    recurse: yes
 
-#- name: get latest nikkon version
-#  local_action: latest_nikkon_version
-#  register: result_latest
-#- name: set version variable
-#  set_fact:
-#    nikkon_version: "{{ result_latest.msg }}"
-#- name: download latest nikkon theme
-#  get_url:
-#    url: "https://downloads.wordpress.org/theme/nikkon.{{ nikkon_version }}.zip"
-#    dest: "/tmp/{{ wp_dir }}-nikkon.{{ nikkon_version }}.zip"
-#    force: no
-#  register: result_get
-#- name: unpack themes
-#  unarchive:
-#    src: "/tmp/{{ wp_dir }}-nikkon.{{ nikkon_version }}.zip"
-#    dest: "/var/www/{{ wp_dir }}/wp-content/themes"
-#    owner: nginx
-#    group: nginx
-#    remote_src: yes
 #- name: get latest yoastseo version
 #  local_action: latest_yoastseo_version
 #  register: result_latest
@@ -92,16 +90,6 @@
 #    group: nginx
 #    remote_src: yes
  
-#- name: create db user
-#  mysql_user:
-#    name: "{{ wp_db_user }}"
-#    password: "{{ wp_db_pwd }}"
-#    state: present
-#    host: "%"
-#    priv: "{{ wp_db_name }}.*:ALL"
-#    login_host: "{{ wp_db_host }}"
-#    login_user: root
-#    login_password: "{{ mysql_root_password }}"
 #- name: configured /var/www/{{ wp_dir }}/wp-config.php
 #  template:
 #    src: templates/wp-config.php.j2

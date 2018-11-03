@@ -16,7 +16,7 @@ from subprocess import call
 from distutils.spawn import *
 from ansible.module_utils.basic import *
 
-def query_available(path, wp, module, theme):
+def query_available_theme(path, wp, module, theme):
     rc, wpout, wperr = module.run_command("{} --path={} theme search {} --format=json --fields=slug,version".format(wp, path, theme))
     if rc != 0:
         module.fail_json(msg=wperr, rc=rc)
@@ -29,6 +29,20 @@ def query_available(path, wp, module, theme):
         if t['slug'] == theme:
             theme_version = t['version']
     return theme_version
+
+def query_available_plugin(path, wp, module, plugin):
+    rc, wpout, wperr = module.run_command("{} --path={} plugin search {} --format=json --fields=slug,version".format(wp, path, plugin))
+    if rc != 0:
+        module.fail_json(msg=wperr, rc=rc)
+    try:
+        plugin_list = json.loads(wpout)
+    except:
+        plugin_list = []
+    plugin_version = ''
+    for p in plugin_list:
+        if p['slug'] == plugin:
+            plugin_version = p['version']
+    return plugin_version
 
 def core(path, wp, module):
 
@@ -59,75 +73,66 @@ def core(path, wp, module):
                         module.fail_json(msg=wperr, rc=rc)
                     module.exit_json(msg="Theme {}.{} removed".format(theme, theme_version), changed=True)
             if state == 'latest':
-                available_version = query_available(path, wp, module, theme)
+                available_version = query_available_theme(path, wp, module, theme)
                 if available_version == theme_version:
                     module.exit_json(msg="Theme {}.{} installed".format(theme, theme_version), changed=False)
-            else:
-                if not module.check_mode:
-                    rc, wpout, wperr = module.run_command("{} --path={} theme update {}".format(wp, path, theme))
-                    if rc != 0:
-                        module.fail_json(msg=wperr, rc=rc)
-                module.exit_json(msg="Theme {} updated to {}".format(theme, available_version), changed=True)
+                else:
+                    if not module.check_mode:
+                        rc, wpout, wperr = module.run_command("{} --path={} theme update {}".format(wp, path, theme))
+                        if rc != 0:
+                            module.fail_json(msg=wperr, rc=rc)
+                    module.exit_json(msg="Theme {} updated to {}".format(theme, available_version), changed=True)
         else:
             # theme is not installed
             if state == 'absent':
-                module.exit_json(msg="Theme {} absent".format(theme), changed=False)
-            available_version = query_available(path, wp, module, theme)
+                module.exit_json(msg="Theme {} removed".format(theme), changed=False)
+            available_version = query_available_theme(path, wp, module, theme)
             if not module.check_mode:
                 rc, wpout, wperr = module.run_command("{} --path={} theme install {} --activate".format(wp, path, theme))
                 if rc != 0:
                     module.fail_json(msg=wperr, rc=rc)
             module.exit_json(msg="Theme {}.{} installed".format(theme, available_version), changed=True)
 
-#    if plugin:
-#        # wp --path=/var/www/thiwp/ plugin is-installed <plugin>
-#        plugin_installed, wpout, wperr = module.run_command("{} --path={} plugin is-installed {}".format(wp, path, theme))
-#        if wperr:
-#          module.fail_json(msg=wperr, rc=rc)
-#        rc, wpout, wperr = module.run_command("{} --path={} plugin search {} --format=csv --field=version".format(wp, path, theme))
-#          if rc == 1:
-#            if wperr:
-#                # stderr, so something went wrong,
-#                module.fail_json(msg=wperr, rc=rc)
-#            else:
-#                # plugin is not installed
-#                # plugin search wordpress-seo --format=json --field=slug
-#                rc, wpout, wperr = module.run_command("{} --path={} plugin search {} --format=json --field=slug".format(wp, path, plugin))
-#                if rc != 0:
-#                    module.fail_json(msg=wperr, rc=rc)
-#                if plugin in wpout:
-#                    # plugin is available
-#                    if not module.check_mode:
-#                        rc, wpout, wperr = module.run_command("{} --path={} plugin install {}".format(wp, path, plugin))
-#                        if rc != 0:
-#                            module.fail_json(msg=wperr, rc=rc)
-#                    module.exit_json(msg="Plugin {} installed".format(plugin), changed=True)
-#                    changed = True
-#                    if pluginoutput:
-#                        pluginoutput = pluginoutput + ", Plugin {} installed".format(plugin)
-#                    else:
-#                        pluginoutput = "Plugin {} installed".format(plugin)
-#                else:
-#                    module.fail_json(msg="Plugin {} is not unavailable".format(plugin), rc=rc)
-#                    if pluginoutput:
-#                        pluginoutput = pluginoutput + ", Plugin {} is not available".format(plugin)
-#                    else:
-#                        pluginoutput = "Plugin {} is not available".format(plugin)
-#          else:
-#            module.exit_json(msg="Plugin {} installed".format(plugin), changed=False)
-#              if pluginoutput:
-#                  pluginoutput = pluginoutput + ", Plugin {} installed".format(plugin)
-#              else:
-#                  pluginoutput = "Plugin {} installed".format(plugin)
-#
-#          module.exit_json(msg=pluginoutput, changed=changed)
-#
-#    else:
-#        rc, wpversion, wperr = module.run_command("{} core version --path={}".format(wp, path))
-#        if not rc:
-#            module.exit_json(msg=wpversion, changed=changed)
-#        else:
-#            module.fail_json(msg=wperr)
+    if plugin:
+        # wp --path=/var/www/thiwp/ plugin is-installed <plugin>
+        plugin_installed, wpout, wperr = module.run_command("{} --path={} plugin is-installed {}".format(wp, path, plugin))
+        if wperr:
+            module.fail_json(msg=wperr, rc=rc)
+        if plugin_installed == 0:
+            # plugin is installed
+            rc, wpout, wperr = module.run_command("{} --path={} plugin get {} --format=json --fields=version".format(wp, path, plugin))
+            if wperr:
+                module.fail_json(msg=wperr, rc=rc)
+            plugin_version = json.loads(wpout)['version']
+            if state == 'present':
+                module.exit_json(msg="Plugin {}.{} installed".format(plugin, plugin_version), changed=False)
+            if state == 'absent':
+                if not module.check_mode:
+                    rc, wpout, wperr = module.run_command("{} --path={} plugin delete {}".format(wp, path, plugin))
+                    if wperr:
+                        module.fail_json(msg=wperr, rc=rc)
+                module.exit_json(msg="Plugin {}.{} removed".format(plugin, plugin_version), changed=True)
+            if state == 'latest':
+                available_version = query_available_plugin(path, wp, module, plugin)
+                if available_version == plugin_version:
+                    module.exit_json(msg="Plugin {}.{} installed".format(plugin, plugin_version), changed=False)
+                else:
+                    if not module.check_mode:
+                        rc, wpout, wperr = module.run_command("{} --path={} plugin update {}".format(wp, path, plugin))
+                        if rc != 0:
+                            module.fail_json(msg=wperr, rc=rc)
+                    module.exit_json(msg="Theme {} updated to {}".format(plugin, available_version), changed=True)
+        else:
+            # plugin is not installed
+            if state == 'absent':
+                module.exit_json(msg="Plugin {} removed".format(plugin), changed=False)
+            available_version = query_available_plugin(path, wp, module, plugin)
+            if not module.check_mode:
+                rc, wpout, wperr = module.run_command("{} --path={} plugin install {} --activate".format(wp, path, plugin))
+                if rc != 0:
+                    module.fail_json(msg=wperr, rc=rc)
+            module.exit_json(msg="Plugin {}.{} installed".format(plugin, available_version), changed=True)
+
 
 def main():
     module = AnsibleModule(
