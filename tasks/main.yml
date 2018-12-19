@@ -16,3 +16,10 @@
       wordpress_settings: "{{ wordpress_prod_settings }}"
   - import_tasks: enforce_wordpress.yml
   when: install_prod_site
+- name: certbot renewal
+  template:
+    src: certbot-renewal
+    dest: /etc/cron.daily/certbot-renewal
+    owner: root
+    group: root
+    mode: 0750
