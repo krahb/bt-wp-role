@@ -17,7 +17,7 @@
   - import_tasks: enforce_wordpress.yml
   when: install_prod_site
 - name: certbot renewal
-  template:
+  file:
     src: certbot-renewal
     dest: /etc/cron.daily/certbot-renewal
     owner: root
