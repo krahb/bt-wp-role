@@ -1,1 +1,1 @@
-certbot renew --noninteractive
+certbot renew --noninteractive --quiet --max-log-backups 32
