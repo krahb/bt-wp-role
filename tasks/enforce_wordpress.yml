@@ -63,7 +63,7 @@
   template:
     src: templates/wp-config.php.j2
     dest: /var/www/{{ wp_dir }}/wp-config.php
-    owner: nginx
+    owner: root
     group: nginx
     mode: 0640
 - name: themes installed
