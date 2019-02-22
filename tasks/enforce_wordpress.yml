@@ -21,6 +21,12 @@
     copy:
       src: "{{ dump_file }}"
       dest: /tmp
+    register: copy_result
+  - name: show
+    debug:
+      var: copy_result
+  - name: fail
+    fail:
   - name: database restored
     mysql_db:
       name: "{{ wp_db_name }}"
