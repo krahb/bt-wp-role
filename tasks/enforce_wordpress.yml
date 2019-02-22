@@ -24,7 +24,7 @@
     register: copy_result
   - name: show
     debug:
-      var: copy_result
+      var: copy_result.path
   - name: fail
     fail:
   - name: database restored
