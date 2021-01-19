@@ -6,6 +6,17 @@
     wp_db_name: "{{ wordpress_settings.database }}"
     wp_db_user: "{{ wordpress_settings.user }}"
     wp_db_pwd: "{{ wordpress_settings.password }}"
+    wp_admin_pwd: "{{ wordpress_settings.admin_password }}"
+  no_log: True
+- name: wordpress database(s) present
+  mysql_db:
+    name: "{{ wp_db_name }}"
+    state: present
+    login_host: "{{ wp_db_host }}"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  no_log: True
+  when: not import_databases
 - block:
   - name: database dump file copied
     copy:
@@ -20,6 +31,7 @@
       login_host: "{{ wp_db_host }}"
       login_user: root
       login_password: "{{ mysql_root_password }}"
+  no_log: True
   when: import_databases
 - name: db user created
   mysql_user:
@@ -31,6 +43,7 @@
     login_host: "{{ wp_db_host }}"
     login_user: root
     login_password: "{{ mysql_root_password }}"
+  no_log: True
 - name: wordpress target directory /var/www/{{ wp_dir }} available
   file:
     path: "/var/www/{{ wp_dir }}"
@@ -76,6 +89,11 @@
     owner: root
     group: nginx
     mode: 0640
+- name: wordpress configured
+  shell: "wp core install --url={{ wp_domain }} --title={{ wp_dir }} --admin_user=admin --admin_password={{ wp_admin_pwd }} --skip-email --path=/var/www/{{ wp_dir }} --admin_email=noop@noop.com"
+  no_log: True
+  args:
+    warn: False
 - name: themes installed
   ansible_wp:
     path: "/var/www/{{ wp_dir }}"
@@ -100,24 +118,19 @@
     owner: nginx
     group: nginx
     recurse: yes
-
-#- name: get latest yoastseo version
-#  local_action: latest_yoastseo_version
-#  register: result_latest
-#- name: set version variable
-#  set_fact:
-#    yoastseo_version: "{{ result_latest.msg }}"
-#- name: download latest yoastseo theme
-#  get_url:
-#    url: "https://downloads.wordpress.org/plugin/wordpress-seo.{{ yoastseo_version }}.zip"
-#    dest: "/tmp/{{ wp_dir }}-wordpress-seo.{{ yoastseo_version }}.zip"
-#    force: no
-#  register: result_get
-#- name: unpack plugins
-#  unarchive:
-#    src: "/tmp/{{ wp_dir }}-wordpress-seo.{{ yoastseo_version }}.zip"
-#    dest: "/var/www/{{ wp_dir }}/wp-content/plugins"
-#    owner: nginx
-#    group: nginx
-#    remote_src: yes
- 
+- name: OpenSSL private key
+  community.crypto.openssl_privatekey:
+    path: "/etc/pki/tls/private/{{ wp_domain }}.key"
+- name: Diffie-Hellman parameters
+  community.crypto.openssl_dhparam:
+    path: /etc/pki/tls/certs/dhparams.pem
+- name: self signed OpenSSL certificate
+  community.crypto.x509_certificate:
+    path: "/etc/pki/tls/certs/{{ wp_domain }}.crt"
+    privatekey_path: "/etc/pki/tls/private/{{ wp_domain }}.key"
+    provider: selfsigned
+- name: latest nginx ssl conf
+  template:
+    src: templates/nginx.ssl.conf.j2
+    dest: "/etc/nginx/conf.d/{{ wp_domain }}.ssl.conf"
+  notify: restart nginx

@@ -16,6 +16,7 @@ from subprocess import call
 from distutils.spawn import *
 from ansible.module_utils.basic import *
 
+
 def query_available_theme(path, wp, module, theme):
     rc, wpout, wperr = module.run_command("{} --path={} theme search {} --format=json --fields=slug,version".format(wp, path, theme))
     if rc != 0:
@@ -29,6 +30,7 @@ def query_available_theme(path, wp, module, theme):
         if t['slug'] == theme:
             theme_version = t['version']
     return theme_version
+
 
 def query_available_plugin(path, wp, module, plugin):
     rc, wpout, wperr = module.run_command("{} --path={} plugin search {} --format=json --fields=slug,version".format(wp, path, plugin))
@@ -44,14 +46,15 @@ def query_available_plugin(path, wp, module, plugin):
             plugin_version = p['version']
     return plugin_version
 
+
 def core(path, wp, module):
 
     theme = module.params['theme']
     state = module.params['state']
     plugin = module.params['plugin']
-    users = module.params['users']
-    download = module.params['download']
-    changed = False
+    # users = module.params['users']
+    # download = module.params['download']
+    # changed = False
 
     if theme:
         # wp --path=/var/www/thiwp/ theme is-installed <theme>
@@ -172,6 +175,7 @@ def main():
         core(path, wpcli, module)
     except Exception as e:
         module.fail_json(msg=str(e))
+
 
 if __name__ == '__main__':
     main()

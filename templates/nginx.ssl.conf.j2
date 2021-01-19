@@ -1,0 +1,63 @@
+server {
+
+    listen       80;
+    listen       [::]:80;
+
+    server_name www.{{ wp_domain }};
+    server_name {{ wp_domain }};
+
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+
+    listen       443 ssl;
+    listen       [::]:443 ssl;
+
+    server_name www.{{ wp_domain }};
+    server_name {{ wp_domain }};
+
+    ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers         'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+    ssl_certificate     /etc/pki/tls/certs/{{ wp_domain }}.crt;
+    ssl_certificate_key /etc/pki/tls/private/{{ wp_domain }}.key;
+    ssl_dhparam         /etc/pki/tls/certs/dhparams.pem;
+
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    root /var/www/{{ wp_dir }};
+    index index.php index.html;
+    location / {
+        try_files $uri $uri/ @handler;
+    }
+    location @handler {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_param SCRIPT_FILENAME /var/www/{{ wp_dir }}/index.php;
+        include /etc/nginx/fastcgi_params;
+        fastcgi_param SCRIPT_NAME /index.php;
+    }
+    location ~ .php$ {
+        try_files $uri @handler;
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /var/www/{{ wp_dir }}$fastcgi_script_name;
+        include fastcgi_params;
+    }
+    location = /favicon.ico { access_log off; log_not_found off; }	
+
+    error_page  500 502 503 504  /50x.html;
+    location = /50x.html {
+        root  /usr/share/nginx/html;
+    }
+
+    access_log /var/log/nginx/access.{{ wp_domain }}.log;
+    error_log /var/log/nginx/error.{{ wp_domain }}.log debug;
+    location = /wp-admin { client_body_buffer_size 1m; }	
+    client_max_body_size 20M;
+
+    location /stub_status {
+        stub_status;
+    }
+}

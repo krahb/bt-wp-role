@@ -1,2 +1,6 @@
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
 - name: restorecon
   command: restorecon -Rv /var/www/{{ wp_dir }}
